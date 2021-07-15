@@ -1,6 +1,8 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: "Developers Group And Users"
 
+
+
 Resources:
   DevelopersGroup: #Logical ID of the Resource ( Creating a Group for our Users )
     Type: "AWS::IAM::Group"
@@ -9,7 +11,7 @@ Resources:
 
 
   EC2LimitedAccessPolicy: # EC2 Limited Access Policy for Group
-    Type: "AWS::IAM:ManagedPolicy"
+    Type: "AWS::IAM::ManagedPolicy"
     Properties:
       ManagedPolicyName: "EC2LimitedAccess"
       PolicyDocument:
@@ -35,7 +37,9 @@ Resources:
               - "iam:ChangePassword"
             Resource:
               Fn::Join: [":",["arn:aws:iam:", !Ref "AWS::AccountId", "user/${aws:username}"]]
-        Group: "Developers"
+      Groups:
+        - "Developers"
+
 
 
   # User Creation
@@ -44,7 +48,7 @@ Resources:
     Properties:
       UserName: "Anusha"
       LoginProfile:
-        Password: "Chiru@021295"
+        Password: "Chiru@021295@darshan"
         PasswordResetRequired: false
       Groups:
         - "Developers"
@@ -55,7 +59,7 @@ Resources:
     Properties:
       UserName: "Harshitha"
       LoginProfile:
-        Password: "Chiru@021295" 
+        Password: "Chiru@021295@darshan" 
         PasswordResetRequired: false
       Groups:
         - "Developers"
