@@ -1,0 +1,58 @@
+#Validation of CloudFormation Temlate/
+Command : aws Cloudformation validate-template --template-body "file://Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CreateUser.yml"
+
+#First Create the Stack Specifying the template file and the neccessary IAM capabilities
+Command:aws cloudformation create-stack --stack-name user-group-developers --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CreateUser.yml" --capabilities  "CAPABILITY_IAM"  "CAPABILITY_NAMED_IAM"
+
+
+#Now wait for completion
+Command : aws cloudformation wait stack-create-complete --stack-name user-group-developers
+Command : aws Cloudformation describe-stacks --stack-name user-group-developers
+Command : aws cloudformation describe-stacks --stack-name user-group-developers --query "Stacks[].[StackName,StackStatus]" --output text
+
+
+
+#To check Resources of Stack
+Command : aws Cloudformation descibe-stack-resources --stack-name user-group-developers
+
+
+#List IAM Users
+Command : aws iam list-users 
+
+#List Customer managed policies (Not AWS Policy)
+Command : aws iam list-policies --scope Local
+
+
+#See details of policy Documents
+Command : aws iam get-policy-version --policy-arn <policy-arn> --version-id v1
+
+
+
+#Create MFA Virtual Device for user
+Command : aws iam create-virtual-mfa-device --virtual-mfa-device-name AnushaMFADevice --outfile ./QRCode.png --bootsrap-method QRCodePNG
+Output :
+ {
+    "VirtualMFADevice": {
+        "SerialNumber": "arn:aws:iam::188256566934:mfa/AnushaMFADevice"
+    }
+}
+
+
+#Enable MFA Virtual Device
+Command : aws iam enable-mfa-device --user-name Anusha --serial-number arn:aws:iam::188256566934:mfa/AnushaMFADevice --authentication-code1 <code> --authentication-code2 <code>
+
+
+
+#Configure AWS CLI to use device for assuming Role
+aws --profile Anusha configure set role_arn <>
+aws --profile Anusha configure set source_profile Admin
+aws --profile Anusha configure set mf_serial <mfa device serial>
+
+
+
+#Create Login profile
+aws iam create-login-profile --user-name anusha --password ChangeMe!12345 --password-reset-required true
+aws iam change-password --old-password ChangeMe!12345 --new-password Chiru@021295!21345
+
+#Changing password for someone else 
+aws iam update-login-profile --user-name anusha  --old-password ChangeMe!12345 --new-password Chiru@021295!21345
