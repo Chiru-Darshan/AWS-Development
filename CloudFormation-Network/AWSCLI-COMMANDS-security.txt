@@ -1,0 +1,17 @@
+#AWS Command to validate cloudformation Template
+Command : aws cloudformation validate-template --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Network/microservices-security.yml"
+
+
+#Create Stack
+Command: aws cloudformation create-stack --stack-name microservices-security --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Network/microservices-security.yml" --parameters ParameterKey=NetworkStack,ParameterValue=microservices-network
+
+
+#Describe Stack-events
+Command: aws cloudformation describe-stack-events --stack-name microservices-security
+
+#Describe Network ACLS
+Command : aws ec2 describe-network-acls --filter "Name=vpc-id,Values=vpc-012bc17f59bcd0ccc" "Name=tag:aws:cloudformation:stack-name,Values=microservices-security" --query "NetworkAcls[].[NetworkAclId,Tags[?Key=='Name']| [0].[Value]" --output text
+
+
+#Describe Network ACL Entries
+Command : aws ec2 describe-network-acls --filter "Name=vpc-id,Values=vpc-012bc17f59bcd0ccc" "Name=tag:aws:cloudformation:stack-name,Values=microservices-security" --query "NetworkAcls[].Entries[]" --output text
