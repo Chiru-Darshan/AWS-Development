@@ -1,0 +1,8 @@
+aws iam put-role-policy --role-name CodeDeployDemo-EC2-Instance-Profile --policy-name CodeDeployDemo-EC2-Permissions --policy-document file://CodeDeployDemo-EC2-Permissions.json
+
+aws iam create-instance-profile --instance-profile-name CodeDeployDemo-EC2-Instance-Profile
+
+
+s3://
+
+ wget https://aws-codedeploy-us-east-1.s3.amazonaws.com/latest/install
