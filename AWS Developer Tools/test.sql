@@ -1,0 +1,1 @@
+select change_request,schedule_start_dtm,schedule_end_dtm,table_name,status from patch_delete_schedule where isnull(status,'') <> 'completed'

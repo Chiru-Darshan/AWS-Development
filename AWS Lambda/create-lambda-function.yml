@@ -1,0 +1,66 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "AWS Lambda Role and Function Creation for Event Source Mappings"
+
+Resources:
+  LambdaSQSEventMappingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: LambdaSQSEventSourceMappingRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: allow
+            Principal:
+              Service: "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole"
+
+  SQSEventMapping:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "Lambda Polling SQS Queue And writes to CloudWatch logs if it finds something"
+      FunctionName: "SQSEventMapping"
+      Handler: "index.handler"
+      MemorySize: 128
+      Role: !GetAtt LambdaSQSEventMappingRole.Arn
+      Runtime: nodejs12.x
+      Code:
+        ZipFile: |
+          var aws = require('aws-sdk')
+          var response = require('cfn-response')
+          exports.handler = async (event, context) => {
+          const response = event.Records.forEach(record => {
+          const {
+              body
+          } = record
+          console.log(body)
+          })
+          return {}
+          }
+
+      Tags:
+        - Key: Name
+          Value: SQSEventMapping
+        - Key: Scope
+          Value: Global
+        - Key: ExampleOf
+          Value: Event Source Mapping
+
+  SampleQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: DecouplingQueue
+      Tags:
+        - Key: Name
+          Value: Decoupling Queue
+
+  AssignESMToSampleQueue:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      FunctionName: !Ref SQSEventMapping
+      BatchSize: 10
+      EventSourceArn: !GetAtt SampleQueue.Arn

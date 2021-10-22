@@ -1,0 +1,75 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "S3 Bucket Creation & Enforcing Bucket Resource Policies"
+
+Resources:
+  BucketForGeneralOperations:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: aws-automation-chirudarshan-operations
+
+  BucketPolicyForGeneralOperations:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BucketForGeneralOperations
+      PolicyDocument:
+        Statement:
+          - Action:
+              - "s3:GetObject"
+              - "s3:ListObject"
+              - "s3:PutObject"
+            Effect: Allow
+            Principal: "*"
+            #AWS: <Another AWS Account>                                 # Use this for Cross Account S3 Sharing
+            Resource: "arn:aws:s3:::aws-automation-chirudarshan-operations/*"
+
+  # Create a bucket for configs which may hold credentials
+
+  BucketForConfigs:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: aws-automation-chirudarshan-configs
+
+  BucketPolicyForConfigs:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BucketForConfigs
+      PolicyDocument:
+        Statement:
+          - Action:
+              - "s3:GetObject"
+              - "s3:ListObject"
+            Effect: Allow
+            Principal:
+              "*"
+              #AWS: <Another AWS Account>                                   # Use this for Cross Account S3 Sharing
+            Resource: "arn:aws:s3:::aws-automation-chirudarshan-configs/*"
+
+          #Prevents Uploads if encryption is not set
+          - Action: "s3:PutObject"
+            Effect: Deny
+            Principal: "*"
+            Resource: "arn:aws:s3:::aws-automation-chirudarshan-configs/*"
+            Condition:
+              StringNotEquals:
+                s3:x-amz-server-side-encryption: "AES256"
+
+  BucketForBackUp:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: aws-automation-chirudarshan-backups
+
+  BucketPolicyForBackup:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref BucketForBackUp
+      PolicyDocument:
+        Statement:
+          - Action:
+              - "s3:GetObject"
+              - "s3:ListObject"
+              - "s3:PutObject"
+            Effect: Allow
+            Principal: "*"
+            #AWS: <Another AWS Account>                                 # Use this for Cross Account S3 Sharing
+            Resource: "arn:aws:s3:::aws-automation-chirudarshan-backups/*"

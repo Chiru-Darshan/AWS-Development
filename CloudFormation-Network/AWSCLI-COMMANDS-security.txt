@@ -15,3 +15,29 @@ Command : aws ec2 describe-network-acls --filter "Name=vpc-id,Values=vpc-012bc17
 
 #Describe Network ACL Entries
 Command : aws ec2 describe-network-acls --filter "Name=vpc-id,Values=vpc-012bc17f59bcd0ccc" "Name=tag:aws:cloudformation:stack-name,Values=microservices-security" --query "NetworkAcls[].Entries[]" --output text
+
+#CHANGE SET Commands
+
+##AWS Command to validate cloudformation Template
+Command : aws cloudformation validate-template --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Network/microservices-security-2.yml"
+
+
+#Create Change SET
+Command : aws cloudformation create-change-set --change-set-name allow-http-traffic --stack-name microservices-security --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Network/microservices-security-2.yml" --parameters ParameterKey=NetworkStack,ParameterValue=microservices-network --query "Id" --output text 
+
+
+#View Details of Change-set
+Command: aws cloudformation describe-change-set --change-set-name <change-set-arn>
+
+
+#View Details of Change-set
+Command: aws cloudformation describe-change-set --change-set-name  <change-set-arn> --query "[StackName, Changes[].ResourceChange]" --output text
+
+
+#Apply the Change-set to Stacks
+Command: aws cloudformation execute-change-set --change-set-name <change-set-name>
+
+#Wait for Updation
+Command : aws cloudformation wait stack-update-complete --stack-name microservices-security
+
+#Cleaner Network ACL Entries OutputCommand : aws ec2 describe-network-acls --filter "Name=vpc-id,Values=vpc-012bc17f59bcd0ccc" "Name=tag:aws:cloudformation:stack-name,Values=microservices-security" --query "NetworkAcls[].Entries[].{Num:RuleNumber,Rule:RuleAction,Range:CidrBlock,Protocol:Protocol,Egress:Egress,Ports: join('-',[to_string(PortRange.From), to_string(PortRange.To)])}" --output table

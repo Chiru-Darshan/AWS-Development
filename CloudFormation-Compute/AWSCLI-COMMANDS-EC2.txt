@@ -1,0 +1,35 @@
+# AWS COMMAND TO GENERATE KEY PAIR VALUE
+COMMAND: aws ec2 create-key-pair --key-name lab
+
+#AWS COMMAND TO DELETE KEY PAIR VALUE
+COMMAND: aws ec2 delete-key-pair --key-name lab
+
+
+#AWS COMMAND TO LIST KEY PAIRS
+COMMAND: aws ec2 describe-key-pairs
+
+#Validate cloudformation template
+COMMAND : aws cloudformation validate-template --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Compute/roles-for-ec2.yml"
+
+# Create Stack
+COMMAND : aws cloudformation create-stack --stack-name roles-for-ec2 --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Compute/roles-for-ec2.yml" --capabilities CAPABILITY_NAMED_IAM
+
+
+#Describe Stack
+Command: aws cloudformation describe-stacks --stack-name roles-for-ec2 --query "Stacks[].StackStatus" --output text
+
+#Stack Resource
+Command : aws cloudformation describe-stack-resources --stack-name roles-for-ec2
+
+
+#Get Role Details
+Command : aws iam get-role --role-name EcsNode
+
+
+# AMI Tags
+aws cloudformation validate-template --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Compute/roles-for-ec2-ops.yml"
+aws cloudformation create-stack --stack-name roles-for-ec2 --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Compute/roles-for-ec2-ops.yml" --capabilities CAPABILITY_NAMED_IAM
+
+
+# Fetch latest AMI ID of linux
+Command: aws ec2 describe-images --owners amazon --filters Name=architecture,Values=x86_64 Name=virtualization-type,Values=hvm Name=root-device-type,Values=ebs Name=name,Values='amzn-ami-hvm*-gp2' --query "sort_by(Images, &Creation_time)[-1].ImageId" --output text
