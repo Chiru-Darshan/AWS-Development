@@ -15,6 +15,8 @@ service: s3-serverless-service
 # app and org for use with dashboard.serverless.com
 #app: your-app-name
 #org: your-org-name
+plugins:
+  - serverless-step-functions
 
 # You can pin your service to only deploy with a specific Serverless version
 # Check out our docs for more details
@@ -26,26 +28,42 @@ provider:
   lambdaHashingVersion: 20201221
   profile: Admin
   region: us-east-1
+  iam:
+    role:
+      statements:
+        - Effect: "Allow"
+          Action:
+            - "s3:ListBucket"
+            - "s3:GetObject"
+          Resource:
+            Fn::Join:
+              - ""
+              - - "arn:aws:s3:::"
+                - Ref: ServerlessDeploymentBucket
+                - "/*"
+        - Effect: "Allow"
+          Action:
+            - "s3:PutObject"
+          Resource:
+            Fn::Join:
+              - ""
+              - - "arn:aws:s3:::"
+                - Ref: ServerlessDeploymentBucket
+                - "/*"
 
 # you can overwrite defaults here
 #  stage: dev
 #  region: us-east-1
 
 # you can add statements to the Lambda function's IAM Role here
-#  iamRoleStatements:
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:ListBucket"
-#      Resource: { "Fn::Join" : ["", ["arn:aws:s3:::", { "Ref" : "ServerlessDeploymentBucket" } ] ]  }
-#    - Effect: "Allow"
-#      Action:
-#        - "s3:PutObject"
-#      Resource:
-#        Fn::Join:
-#          - ""
-#          - - "arn:aws:s3:::"
-#            - "Ref" : "ServerlessDeploymentBucket"
-#            - "/*"
+
+# iamRoleStatements:
+#   - Effect: "Allow"
+#     Action:
+#       - "s3:ListBucket"
+#       - "s3:GetObject"
+#       - "s3:PutObject"
+#     ResourceName: "arn:aws:s3:::chiru-learning-s3-lambda-integration"
 
 # you can define service wide environment variables here
 #  environment:
@@ -60,8 +78,8 @@ provider:
 #    - include-me-dir/**
 
 functions:
-  hello:
-    handler: handler.hello
+  resizer:
+    handler: handler.resizer
     events:
       - s3:
           bucket: chiru-learning-s3-lambda-integration
