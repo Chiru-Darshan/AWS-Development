@@ -1,0 +1,18 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Private Host Zone'
+
+
+Resources:
+  PrivateHostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      Name: "darshan.aws"
+      VPCs:
+        - 
+          VPCId: "vpc-012bc17f59bcd0ccc"
+          VPCRegion: "us-east-1"
+      HostedZoneTags:
+        - 
+          Key: "Name"
+          Value: "Private Hosted Zone"

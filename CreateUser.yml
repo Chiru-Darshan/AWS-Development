@@ -48,8 +48,8 @@ Resources:
     Properties:
       UserName: "Anusha"
       LoginProfile:
-        Password: "Chiru@021295@darshan"
-        PasswordResetRequired: false
+        Password: "CH@NgEM3!Please"
+        PasswordResetRequired: true
       Groups:
         - "Developers"
 
@@ -59,8 +59,8 @@ Resources:
     Properties:
       UserName: "Harshitha"
       LoginProfile:
-        Password: "Chiru@021295@darshan" 
-        PasswordResetRequired: false
+        Password: "CH@NgEM3!Please" 
+        PasswordResetRequired: true
       Groups:
         - "Developers"
       

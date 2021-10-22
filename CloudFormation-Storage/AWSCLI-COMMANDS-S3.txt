@@ -1,0 +1,9 @@
+#AWS Command to validate cloudformation Template
+Command : aws cloudformation validate-template --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Storage/s3-bucket.yml"
+
+
+#Create Stack
+Command: aws cloudformation create-stack --stack-name s3-buckets --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Storage/s3-bucket.yml"
+
+#Describe Stack-events
+Command: aws cloudformation describe-stack-events --stack-name s3-buckets

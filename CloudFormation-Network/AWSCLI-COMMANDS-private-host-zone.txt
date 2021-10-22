@@ -1,0 +1,2 @@
+##AWS Command to validate cloudformation Template
+Command : aws cloudformation validate-template --template-body "file:///Users/DA/Documents/AWS Learning/Chiru Account/AWS Automation/CloudFormation-Network/private-hosted-zone.yml"

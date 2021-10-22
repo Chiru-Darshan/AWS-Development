@@ -56,3 +56,4 @@ aws iam change-password --old-password ChangeMe!12345 --new-password Chiru@02129
 
 #Changing password for someone else 
 aws iam update-login-profile --user-name anusha  --old-password ChangeMe!12345 --new-password Chiru@021295!21345
+

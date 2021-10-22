@@ -1,0 +1,167 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Internet Gateway and Route Table for Public Traffic"
+
+Parameters:
+  NetworkStack:
+    Description: "Network Stack to Apply to"
+    Type: String
+
+
+
+Resources:
+
+  #Provide VPC With Internet Access
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref AWS::StackName
+  
+
+  #Creating Internet Gateway is not enough, we need to attach it to VPC
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: 
+        Fn::ImportValue:                  #Importing a value from Another Stack
+          !Sub ${NetworkStack}-VpcId      #Substitute NetworkStack will to derive the VPCid Parameter Name
+
+  
+
+  #Traffic Must be explicitly routed to internet bi-directional
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: 
+        Fn::ImportValue:
+          !Sub ${NetworkStack}-VpcId
+      Tags:
+        - Key: Name
+          Value: DMZ Routes
+        - Key: Scope
+          Value: Public
+
+
+  #Create Routes to Route Table
+  PublicRouteToInternet:
+    DependsOn: InternetGatewayAttachment   #Force Internet Gateway Attachment to VPC Before Creating Routes
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/21
+      GatewayId: !Ref InternetGateway
+
+
+  #Attach the Route Tables to Subnets
+  PublicRouteTableAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId:
+        Fn::ImportValue:
+          !Sub ${NetworkStack}-DMZSubnetAId
+
+
+  PublicRouteTableAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId:
+        Fn::ImportValue:
+          !Sub ${NetworkStack}-DMZSubnetBId
+
+
+  PublicRouteTableAssociationC:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId:
+        Fn::ImportValue:
+          !Sub ${NetworkStack}-DMZSubnetCId
+    
+
+
+  #Private Subnets will be able to reachout to internet being Priavte
+  #Network Address Translation solves this so create NAT Gateway
+
+  NatGateway:
+    DependsOn: InternetGatewayAttachment
+    Type: AWS::EC2::NatGateway
+    Properties:
+      AllocationId: !GetAtt ElasticIP.AllocationId
+      SubnetId:
+        Fn::ImportValue:
+          !Sub ${NetworkStack}-DMZSubnetAId
+
+
+  #NAT Gateway Requires Public Elastic IP Address
+  ElasticIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  #Private Route Table for Private Route
+  PrivateRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: 
+        Fn::ImportValue:
+          !Sub ${NetworkStack}-VpcId
+      Tags:
+        - Key : Name
+          Value : Private Route Table
+        - Key: Scope
+          Value: Private
+
+
+  #Create Routes for Private Route Table for forwarding other requests to NAT Getway
+  PrivateRouteToInternet:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0             #All routes not destined for VPC range
+      NatGatewayId: !Ref NatGateway               # Routes Pass Via Nat Gateway
+
+
+  #Associate Route Table to Subnets
+  PrivateRouteTableAssociationA:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: 
+        Fn::ImportValue:
+          !Sub ${NetworkStack}-NodesAId
+
+
+  PrivateRouteTableAssociationB:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: 
+        Fn::ImportValue:
+          !Sub ${NetworkStack}-NodesBId
+
+
+  PrivateRouteTableAssociationC:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PrivateRouteTable
+      SubnetId: 
+        Fn::ImportValue:
+          !Sub ${NetworkStack}-NodesCId
+    
+
+
+
+
+      
+
+
+
+
+      
+      
+
+ 

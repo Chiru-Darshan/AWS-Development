@@ -1,0 +1,582 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "The AWS CloudFormation template for this Serverless application",
+  "Resources": {
+    "ServerlessDeploymentBucket": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketEncryption": {
+          "ServerSideEncryptionConfiguration": [
+            {
+              "ServerSideEncryptionByDefault": {
+                "SSEAlgorithm": "AES256"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "ServerlessDeploymentBucketPolicy": {
+      "Type": "AWS::S3::BucketPolicy",
+      "Properties": {
+        "Bucket": {
+          "Ref": "ServerlessDeploymentBucket"
+        },
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": "s3:*",
+              "Effect": "Deny",
+              "Principal": "*",
+              "Resource": [
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "ServerlessDeploymentBucket"
+                      },
+                      "/*"
+                    ]
+                  ]
+                },
+                {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "arn:",
+                      {
+                        "Ref": "AWS::Partition"
+                      },
+                      ":s3:::",
+                      {
+                        "Ref": "ServerlessDeploymentBucket"
+                      }
+                    ]
+                  ]
+                }
+              ],
+              "Condition": {
+                "Bool": {
+                  "aws:SecureTransport": false
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "ResizeImageLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/serverless-service-new-dev-resizeImage"
+      }
+    },
+    "ExecuteStepFunctionLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/serverless-service-new-dev-executeStepFunction"
+      }
+    },
+    "ThumbnailsLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/serverless-service-new-dev-thumbnails"
+      }
+    },
+    "SaveImageMetaDataLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/serverless-service-new-dev-saveImageMetaData"
+      }
+    },
+    "IamRoleLambdaExecution": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "lambda.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": {
+              "Fn::Join": [
+                "-",
+                [
+                  "serverless-service-new",
+                  "dev",
+                  "lambda"
+                ]
+              ]
+            },
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:CreateLogStream",
+                    "logs:CreateLogGroup"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-service-new-dev*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "logs:PutLogEvents"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/serverless-service-new-dev*:*:*"
+                    }
+                  ]
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "s2:ListBucket",
+                    "s3:GetObject",
+                    "s3:PutObject"
+                  ],
+                  "Resource": "arn:aws:s3:::chiru-serverless-service-learning-008/*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "states:ListStateMachines",
+                    "states:StartExecution"
+                  ],
+                  "Resource": "arn:aws:states:*:*:*"
+                }
+              ]
+            }
+          }
+        ],
+        "Path": "/",
+        "RoleName": {
+          "Fn::Join": [
+            "-",
+            [
+              "serverless-service-new",
+              "dev",
+              {
+                "Ref": "AWS::Region"
+              },
+              "lambdaRole"
+            ]
+          ]
+        }
+      }
+    },
+    "ResizeImageLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/serverless-service-new/dev/1634922617063-2021-10-22T17:10:17.063Z/serverless-service-new.zip"
+        },
+        "Handler": "handler.resizeImage",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "serverless-service-new-dev-resizeImage",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "ResizeImageLogGroup"
+      ]
+    },
+    "ExecuteStepFunctionLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/serverless-service-new/dev/1634922617063-2021-10-22T17:10:17.063Z/serverless-service-new.zip"
+        },
+        "Handler": "handler.executeStepFunction",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "serverless-service-new-dev-executeStepFunction",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "ExecuteStepFunctionLogGroup"
+      ]
+    },
+    "ThumbnailsLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/serverless-service-new/dev/1634922617063-2021-10-22T17:10:17.063Z/serverless-service-new.zip"
+        },
+        "Handler": "handler.thumbnails",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "serverless-service-new-dev-thumbnails",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "ThumbnailsLogGroup"
+      ]
+    },
+    "SaveImageMetaDataLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/serverless-service-new/dev/1634922617063-2021-10-22T17:10:17.063Z/serverless-service-new.zip"
+        },
+        "Handler": "handler.saveImageMetaData",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "serverless-service-new-dev-saveImageMetaData",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "SaveImageMetaDataLogGroup"
+      ]
+    },
+    "ResizeImageLambdaVersioneZgw74VaQgpPeLLt9I8Pt5mkhpUZU3uERfgQ85KfIR0": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ResizeImageLambdaFunction"
+        },
+        "CodeSha256": "go3dgeu1KFU3TznYj2oNH+xmHhK7s178b2IbguedA3w="
+      }
+    },
+    "ExecuteStepFunctionLambdaVersionHMWr4lqu9SCw5cS4I477wxKyvXI7J6oseYdj0WnN0": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ExecuteStepFunctionLambdaFunction"
+        },
+        "CodeSha256": "go3dgeu1KFU3TznYj2oNH+xmHhK7s178b2IbguedA3w="
+      }
+    },
+    "ThumbnailsLambdaVersionthoMwBN5nwEoZArulFRXPCFVyUZ9YjlgFdV9ChMm4": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "ThumbnailsLambdaFunction"
+        },
+        "CodeSha256": "go3dgeu1KFU3TznYj2oNH+xmHhK7s178b2IbguedA3w="
+      }
+    },
+    "SaveImageMetaDataLambdaVersionXfFDFvzXZm38n9WZpjAkslkTxQKxukG06iuB7i3ck8": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "SaveImageMetaDataLambdaFunction"
+        },
+        "CodeSha256": "go3dgeu1KFU3TznYj2oNH+xmHhK7s178b2IbguedA3w="
+      }
+    },
+    "ImageProcessingMachineStepFunctionsStateMachineRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "states.us-east-1.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "dev-us-east-1-serverless-service-new-statemachine",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "lambda:InvokeFunction"
+                  ],
+                  "Resource": [
+                    {
+                      "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-resizeImage"
+                    },
+                    {
+                      "Fn::Sub": [
+                        "${functionArn}:*",
+                        {
+                          "functionArn": {
+                            "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-resizeImage"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-saveImageMetaData"
+                    },
+                    {
+                      "Fn::Sub": [
+                        "${functionArn}:*",
+                        {
+                          "functionArn": {
+                            "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-saveImageMetaData"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "ImageProcessingMachineStepFunctionsStateMachine": {
+      "Type": "AWS::StepFunctions::StateMachine",
+      "Properties": {
+        "DefinitionString": {
+          "Fn::Sub": "{\n  \"Comment\": \"image processing state machine\",\n  \"StartAt\": \"Parallel\",\n  \"States\": {\n    \"Parallel\": {\n      \"Type\": \"Parallel\",\n      \"Next\": \"FinalState\",\n      \"Branches\": [\n        {\n          \"StartAt\": \"ResizeImage\",\n          \"States\": {\n            \"ResizeImage\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-resizeImage\",\n              \"End\": true\n            }\n          }\n        },\n        {\n          \"StartAt\": \"SaveImageMetaData\",\n          \"States\": {\n            \"SaveImageMetaData\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-saveImageMetaData\",\n              \"End\": true\n            }\n          }\n        }\n      ]\n    },\n    \"FinalState\": {\n      \"Type\": \"Pass\",\n      \"End\": true\n    }\n  }\n}"
+        },
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "ImageProcessingMachineStepFunctionsStateMachineRole",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "ImageProcessingMachineStepFunctionsStateMachineRole"
+      ]
+    },
+    "S3BucketChiruserverlessservicelearning008": {
+      "Type": "AWS::S3::Bucket",
+      "Properties": {
+        "BucketName": "chiru-serverless-service-learning-008",
+        "NotificationConfiguration": {
+          "LambdaConfigurations": [
+            {
+              "Event": "s3:ObjectCreated:*",
+              "Function": {
+                "Fn::GetAtt": [
+                  "ExecuteStepFunctionLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Filter": {
+                "S3Key": {
+                  "Rules": [
+                    {
+                      "Name": "prefix",
+                      "Value": "uploads"
+                    },
+                    {
+                      "Name": "suffix",
+                      "Value": ".jpg"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "Event": "s3:ObjectCreated:*",
+              "Function": {
+                "Fn::GetAtt": [
+                  "ThumbnailsLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "Filter": {
+                "S3Key": {
+                  "Rules": [
+                    {
+                      "Name": "prefix",
+                      "Value": "resized-uploads"
+                    },
+                    {
+                      "Name": "suffix",
+                      "Value": ".jpg"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      },
+      "DependsOn": [
+        "ExecuteStepFunctionLambdaPermissionChiruserverlessservicelearning008S3",
+        "ThumbnailsLambdaPermissionChiruserverlessservicelearning008S3"
+      ]
+    },
+    "ExecuteStepFunctionLambdaPermissionChiruserverlessservicelearning008S3": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ExecuteStepFunctionLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "s3.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":s3:::chiru-serverless-service-learning-008"
+            ]
+          ]
+        },
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        }
+      }
+    },
+    "ThumbnailsLambdaPermissionChiruserverlessservicelearning008S3": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "ThumbnailsLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "s3.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":s3:::chiru-serverless-service-learning-008"
+            ]
+          ]
+        },
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "ServerlessDeploymentBucketName": {
+      "Value": {
+        "Ref": "ServerlessDeploymentBucket"
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-ServerlessDeploymentBucketName"
+      }
+    },
+    "ResizeImageLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "ResizeImageLambdaVersioneZgw74VaQgpPeLLt9I8Pt5mkhpUZU3uERfgQ85KfIR0"
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-ResizeImageLambdaFunctionQualifiedArn"
+      }
+    },
+    "ExecuteStepFunctionLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "ExecuteStepFunctionLambdaVersionHMWr4lqu9SCw5cS4I477wxKyvXI7J6oseYdj0WnN0"
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-ExecuteStepFunctionLambdaFunctionQualifiedArn"
+      }
+    },
+    "ThumbnailsLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "ThumbnailsLambdaVersionthoMwBN5nwEoZArulFRXPCFVyUZ9YjlgFdV9ChMm4"
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-ThumbnailsLambdaFunctionQualifiedArn"
+      }
+    },
+    "SaveImageMetaDataLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "SaveImageMetaDataLambdaVersionXfFDFvzXZm38n9WZpjAkslkTxQKxukG06iuB7i3ck8"
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-SaveImageMetaDataLambdaFunctionQualifiedArn"
+      }
+    },
+    "ImageProcessingMachineStepFunctionsStateMachineArn": {
+      "Description": "Current StateMachine Arn",
+      "Value": {
+        "Ref": "ImageProcessingMachineStepFunctionsStateMachine"
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-ImageProcessingMachineStepFunctionsStateMachineArn"
+      }
+    }
+  }
+}

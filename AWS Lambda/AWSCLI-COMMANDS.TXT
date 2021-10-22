@@ -1,0 +1,8 @@
+# Asynchronous invocation using lambda
+Command : aws lambda invoke --function-name HelloWorld --invocation-type Event --payload ewogICJrZXkxIjogInZhbHVlMSIsCiAgImtleTIiOiAidmFsdWUyIiwKICAia2V5MyI6ICJ2YWx1ZTMiCn0= response.json
+
+#Synchronous Execution using lambda
+Command:  aws lambda invoke --function-name HelloWorld  --payload ewogICJrZXkxIjogInZhbHVlMSIsCiAgImtleTIiOiAidmFsdWUyIiwKICAia2V5MyI6ICJ2YWx1ZTMiCn0= response.json
+
+#Displaying log details of invoked function
+Command:  aws lambda invoke --function-name HelloWorld --invocation-type Event --payload ewogICJrZXkxIjogInZhbHVlMSIsCiAgImtleTIiOiAidmFsdWUyIiwKICAia2V5MyI6ICJ2YWx1ZTMiCn0= out --log-type Tail
