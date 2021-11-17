@@ -1,4 +1,10 @@
 service: serverless-service-new
+
+custom:
+  settings:
+    IMAGE_METADATA_TABLE_NAME: images-metadata
+    SECRET_KEY: ${ssm:learning-serverless-secret-token}
+
 plugins:
   - serverless-step-functions
   - serverless-pseudo-parameters
@@ -11,6 +17,18 @@ provider:
   profile: Admin
   region: us-east-1
   stage: dev
+  environment: ${self:custom.settings}
+  apiKeys:
+    - learning-serverless-api-keys
+  usagePlan:
+    quota:
+      limit: 10
+      offset: 0
+      period: DAY
+    throttle:
+      burstLimit: 10
+      rateLimit: 10
+
   iamRoleStatements:
     - Effect: "Allow"
       Action:
@@ -23,6 +41,14 @@ provider:
         - "states:ListStateMachines"
         - "states:StartExecution"
       Resource: "arn:aws:states:*:*:*"
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:Scan"
+        - "dynamodb:GetItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:DeleteItem"
+      Resource: "arn:aws:dynamodb:${self:provider.region}:*:table/${self:custom.settings.IMAGE_METADATA_TABLE_NAME}"
 
 functions:
   resizeImage:
@@ -47,6 +73,25 @@ functions:
             - suffix: .jpg
   saveImageMetaData:
     handler: handler.saveImageMetaData
+  squareImage:
+    handler: handler.squareImage
+  getImageMetaData:
+    handler: handler.getImageMetaData
+    events:
+      - http:
+          path: image/{imageId}
+          method: GET
+          authorizer: authorize
+  generateToken:
+    handler: authorizationHandler.generateToken
+    events:
+      - http:
+          path: register
+          method: POST
+          private: true
+  authorize:
+    handler: authorizationHandler.authorize
+
 stepFunctions:
   # validate: true
   stateMachines:
@@ -71,6 +116,28 @@ stepFunctions:
                     Type: Task
                     Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-saveImageMetaData"
                     End: true
+              - StartAt: SquareImage
+                States:
+                  SquareImage:
+                    Type: Task
+                    Resource: "arn:aws:lambda:#{AWS::Region}:#{AWS::AccountId}:function:${self:service}-${opt:stage}-squareImage"
+                    End: true
           FinalState:
             Type: Pass
             End: true
+
+resources:
+  Resources:
+    ImageTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: "ImageId"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "ImageId"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: ${self:custom.settings.IMAGE_METADATA_TABLE_NAME}

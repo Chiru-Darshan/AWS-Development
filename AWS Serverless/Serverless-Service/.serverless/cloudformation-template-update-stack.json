@@ -95,6 +95,30 @@
         "LogGroupName": "/aws/lambda/serverless-service-new-dev-saveImageMetaData"
       }
     },
+    "SquareImageLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/serverless-service-new-dev-squareImage"
+      }
+    },
+    "GetImageMetaDataLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/serverless-service-new-dev-getImageMetaData"
+      }
+    },
+    "GenerateTokenLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/serverless-service-new-dev-generateToken"
+      }
+    },
+    "AuthorizeLogGroup": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": "/aws/lambda/serverless-service-new-dev-authorize"
+      }
+    },
     "IamRoleLambdaExecution": {
       "Type": "AWS::IAM::Role",
       "Properties": {
@@ -168,6 +192,17 @@
                     "states:StartExecution"
                   ],
                   "Resource": "arn:aws:states:*:*:*"
+                },
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "dynamodb:Scan",
+                    "dynamodb:GetItem",
+                    "dynamodb:PutItem",
+                    "dynamodb:UpdateItem",
+                    "dynamodb:DeleteItem"
+                  ],
+                  "Resource": "arn:aws:dynamodb:us-east-1:*:table/images-metadata"
                 }
               ]
             }
@@ -196,13 +231,19 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-service-new/dev/1634922617063-2021-10-22T17:10:17.063Z/serverless-service-new.zip"
+          "S3Key": "serverless/serverless-service-new/dev/1635678113003-2021-10-31T11:01:53.003Z/serverless-service-new.zip"
         },
         "Handler": "handler.resizeImage",
         "Runtime": "nodejs12.x",
         "FunctionName": "serverless-service-new-dev-resizeImage",
         "MemorySize": 1024,
         "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "IMAGE_METADATA_TABLE_NAME": "images-metadata",
+            "SECRET_KEY": "mySuperSecret!"
+          }
+        },
         "Role": {
           "Fn::GetAtt": [
             "IamRoleLambdaExecution",
@@ -221,13 +262,19 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-service-new/dev/1634922617063-2021-10-22T17:10:17.063Z/serverless-service-new.zip"
+          "S3Key": "serverless/serverless-service-new/dev/1635678113003-2021-10-31T11:01:53.003Z/serverless-service-new.zip"
         },
         "Handler": "handler.executeStepFunction",
         "Runtime": "nodejs12.x",
         "FunctionName": "serverless-service-new-dev-executeStepFunction",
         "MemorySize": 1024,
         "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "IMAGE_METADATA_TABLE_NAME": "images-metadata",
+            "SECRET_KEY": "mySuperSecret!"
+          }
+        },
         "Role": {
           "Fn::GetAtt": [
             "IamRoleLambdaExecution",
@@ -246,13 +293,19 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-service-new/dev/1634922617063-2021-10-22T17:10:17.063Z/serverless-service-new.zip"
+          "S3Key": "serverless/serverless-service-new/dev/1635678113003-2021-10-31T11:01:53.003Z/serverless-service-new.zip"
         },
         "Handler": "handler.thumbnails",
         "Runtime": "nodejs12.x",
         "FunctionName": "serverless-service-new-dev-thumbnails",
         "MemorySize": 1024,
         "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "IMAGE_METADATA_TABLE_NAME": "images-metadata",
+            "SECRET_KEY": "mySuperSecret!"
+          }
+        },
         "Role": {
           "Fn::GetAtt": [
             "IamRoleLambdaExecution",
@@ -271,13 +324,19 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/serverless-service-new/dev/1634922617063-2021-10-22T17:10:17.063Z/serverless-service-new.zip"
+          "S3Key": "serverless/serverless-service-new/dev/1635678113003-2021-10-31T11:01:53.003Z/serverless-service-new.zip"
         },
         "Handler": "handler.saveImageMetaData",
         "Runtime": "nodejs12.x",
         "FunctionName": "serverless-service-new-dev-saveImageMetaData",
         "MemorySize": 1024,
         "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "IMAGE_METADATA_TABLE_NAME": "images-metadata",
+            "SECRET_KEY": "mySuperSecret!"
+          }
+        },
         "Role": {
           "Fn::GetAtt": [
             "IamRoleLambdaExecution",
@@ -289,44 +348,208 @@
         "SaveImageMetaDataLogGroup"
       ]
     },
-    "ResizeImageLambdaVersioneZgw74VaQgpPeLLt9I8Pt5mkhpUZU3uERfgQ85KfIR0": {
+    "SquareImageLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/serverless-service-new/dev/1635678113003-2021-10-31T11:01:53.003Z/serverless-service-new.zip"
+        },
+        "Handler": "handler.squareImage",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "serverless-service-new-dev-squareImage",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "IMAGE_METADATA_TABLE_NAME": "images-metadata",
+            "SECRET_KEY": "mySuperSecret!"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "SquareImageLogGroup"
+      ]
+    },
+    "GetImageMetaDataLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/serverless-service-new/dev/1635678113003-2021-10-31T11:01:53.003Z/serverless-service-new.zip"
+        },
+        "Handler": "handler.getImageMetaData",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "serverless-service-new-dev-getImageMetaData",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "IMAGE_METADATA_TABLE_NAME": "images-metadata",
+            "SECRET_KEY": "mySuperSecret!"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "GetImageMetaDataLogGroup"
+      ]
+    },
+    "GenerateTokenLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/serverless-service-new/dev/1635678113003-2021-10-31T11:01:53.003Z/serverless-service-new.zip"
+        },
+        "Handler": "authorizationHandler.generateToken",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "serverless-service-new-dev-generateToken",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "IMAGE_METADATA_TABLE_NAME": "images-metadata",
+            "SECRET_KEY": "mySuperSecret!"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "GenerateTokenLogGroup"
+      ]
+    },
+    "AuthorizeLambdaFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "ServerlessDeploymentBucket"
+          },
+          "S3Key": "serverless/serverless-service-new/dev/1635678113003-2021-10-31T11:01:53.003Z/serverless-service-new.zip"
+        },
+        "Handler": "authorizationHandler.authorize",
+        "Runtime": "nodejs12.x",
+        "FunctionName": "serverless-service-new-dev-authorize",
+        "MemorySize": 1024,
+        "Timeout": 6,
+        "Environment": {
+          "Variables": {
+            "IMAGE_METADATA_TABLE_NAME": "images-metadata",
+            "SECRET_KEY": "mySuperSecret!"
+          }
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "IamRoleLambdaExecution",
+            "Arn"
+          ]
+        }
+      },
+      "DependsOn": [
+        "AuthorizeLogGroup"
+      ]
+    },
+    "ResizeImageLambdaVersion205O4UUCnxBU4F37QknlcOtmIWVSADNagpilTSAk": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ResizeImageLambdaFunction"
         },
-        "CodeSha256": "go3dgeu1KFU3TznYj2oNH+xmHhK7s178b2IbguedA3w="
+        "CodeSha256": "LeuBB8obgMQnoW1NTki/HwWJI5/uqc1gQ3dwYSCPOfM="
       }
     },
-    "ExecuteStepFunctionLambdaVersionHMWr4lqu9SCw5cS4I477wxKyvXI7J6oseYdj0WnN0": {
+    "ExecuteStepFunctionLambdaVersionjOvTKjhziSaqmKptqaHZ8RWcBcY3HDdVhqDHvozQeHI": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ExecuteStepFunctionLambdaFunction"
         },
-        "CodeSha256": "go3dgeu1KFU3TznYj2oNH+xmHhK7s178b2IbguedA3w="
+        "CodeSha256": "LeuBB8obgMQnoW1NTki/HwWJI5/uqc1gQ3dwYSCPOfM="
       }
     },
-    "ThumbnailsLambdaVersionthoMwBN5nwEoZArulFRXPCFVyUZ9YjlgFdV9ChMm4": {
+    "ThumbnailsLambdaVersionSb8zj7F5VE5O06sMajn1CULRyDsTvcTuRD26K7Ho6U": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "ThumbnailsLambdaFunction"
         },
-        "CodeSha256": "go3dgeu1KFU3TznYj2oNH+xmHhK7s178b2IbguedA3w="
+        "CodeSha256": "LeuBB8obgMQnoW1NTki/HwWJI5/uqc1gQ3dwYSCPOfM="
       }
     },
-    "SaveImageMetaDataLambdaVersionXfFDFvzXZm38n9WZpjAkslkTxQKxukG06iuB7i3ck8": {
+    "SaveImageMetaDataLambdaVersionZPfjafnIGlvhSQtPjc1oi4ifw1mFY0a8ky7czJV9s": {
       "Type": "AWS::Lambda::Version",
       "DeletionPolicy": "Retain",
       "Properties": {
         "FunctionName": {
           "Ref": "SaveImageMetaDataLambdaFunction"
         },
-        "CodeSha256": "go3dgeu1KFU3TznYj2oNH+xmHhK7s178b2IbguedA3w="
+        "CodeSha256": "LeuBB8obgMQnoW1NTki/HwWJI5/uqc1gQ3dwYSCPOfM="
+      }
+    },
+    "SquareImageLambdaVersionHjJLiJKqQyc14fd9Agza9ptRjyF6U8HOMk3BdqpRw": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "SquareImageLambdaFunction"
+        },
+        "CodeSha256": "LeuBB8obgMQnoW1NTki/HwWJI5/uqc1gQ3dwYSCPOfM="
+      }
+    },
+    "GetImageMetaDataLambdaVersionDZAE0cKxGy86Az8C9ZnwrNTZeSOa6UKLp1KRDH0qIY": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "GetImageMetaDataLambdaFunction"
+        },
+        "CodeSha256": "LeuBB8obgMQnoW1NTki/HwWJI5/uqc1gQ3dwYSCPOfM="
+      }
+    },
+    "GenerateTokenLambdaVersionpM6f3ml9YGN5zem3GLh1KByvWRG5BegAryUrowywU": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "GenerateTokenLambdaFunction"
+        },
+        "CodeSha256": "LeuBB8obgMQnoW1NTki/HwWJI5/uqc1gQ3dwYSCPOfM="
+      }
+    },
+    "AuthorizeLambdaVersion63fuK7jDqidrT0VcjxatFRFYhygb4FKQo6jIXsGkc1c": {
+      "Type": "AWS::Lambda::Version",
+      "DeletionPolicy": "Retain",
+      "Properties": {
+        "FunctionName": {
+          "Ref": "AuthorizeLambdaFunction"
+        },
+        "CodeSha256": "LeuBB8obgMQnoW1NTki/HwWJI5/uqc1gQ3dwYSCPOfM="
       }
     },
     "ImageProcessingMachineStepFunctionsStateMachineRole": {
@@ -381,6 +604,19 @@
                           }
                         }
                       ]
+                    },
+                    {
+                      "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-squareImage"
+                    },
+                    {
+                      "Fn::Sub": [
+                        "${functionArn}:*",
+                        {
+                          "functionArn": {
+                            "Fn::Sub": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-squareImage"
+                          }
+                        }
+                      ]
                     }
                   ]
                 }
@@ -394,7 +630,7 @@
       "Type": "AWS::StepFunctions::StateMachine",
       "Properties": {
         "DefinitionString": {
-          "Fn::Sub": "{\n  \"Comment\": \"image processing state machine\",\n  \"StartAt\": \"Parallel\",\n  \"States\": {\n    \"Parallel\": {\n      \"Type\": \"Parallel\",\n      \"Next\": \"FinalState\",\n      \"Branches\": [\n        {\n          \"StartAt\": \"ResizeImage\",\n          \"States\": {\n            \"ResizeImage\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-resizeImage\",\n              \"End\": true\n            }\n          }\n        },\n        {\n          \"StartAt\": \"SaveImageMetaData\",\n          \"States\": {\n            \"SaveImageMetaData\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-saveImageMetaData\",\n              \"End\": true\n            }\n          }\n        }\n      ]\n    },\n    \"FinalState\": {\n      \"Type\": \"Pass\",\n      \"End\": true\n    }\n  }\n}"
+          "Fn::Sub": "{\n  \"Comment\": \"image processing state machine\",\n  \"StartAt\": \"Parallel\",\n  \"States\": {\n    \"Parallel\": {\n      \"Type\": \"Parallel\",\n      \"Next\": \"FinalState\",\n      \"Branches\": [\n        {\n          \"StartAt\": \"ResizeImage\",\n          \"States\": {\n            \"ResizeImage\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-resizeImage\",\n              \"End\": true\n            }\n          }\n        },\n        {\n          \"StartAt\": \"SaveImageMetaData\",\n          \"States\": {\n            \"SaveImageMetaData\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-saveImageMetaData\",\n              \"End\": true\n            }\n          }\n        },\n        {\n          \"StartAt\": \"SquareImage\",\n          \"States\": {\n            \"SquareImage\": {\n              \"Type\": \"Task\",\n              \"Resource\": \"arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:serverless-service-new-dev-squareImage\",\n              \"End\": true\n            }\n          }\n        }\n      ]\n    },\n    \"FinalState\": {\n      \"Type\": \"Pass\",\n      \"End\": true\n    }\n  }\n}"
         },
         "RoleArn": {
           "Fn::GetAtt": [
@@ -522,6 +758,386 @@
           "Ref": "AWS::AccountId"
         }
       }
+    },
+    "ApiGatewayRestApi": {
+      "Type": "AWS::ApiGateway::RestApi",
+      "Properties": {
+        "Name": "dev-serverless-service-new",
+        "EndpointConfiguration": {
+          "Types": [
+            "EDGE"
+          ]
+        },
+        "Policy": ""
+      }
+    },
+    "ApiGatewayResourceImage": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "image",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceImageImageidVar": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceImage"
+        },
+        "PathPart": "{imageId}",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayResourceRegister": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Fn::GetAtt": [
+            "ApiGatewayRestApi",
+            "RootResourceId"
+          ]
+        },
+        "PathPart": "register",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        }
+      }
+    },
+    "ApiGatewayMethodImageImageidVarGet": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "GET",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceImageImageidVar"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": false,
+        "AuthorizationType": "CUSTOM",
+        "AuthorizerId": {
+          "Ref": "AuthorizeApiGatewayAuthorizer"
+        },
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "GetImageMetaDataLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": "AuthorizeApiGatewayAuthorizer"
+    },
+    "ApiGatewayMethodRegisterPost": {
+      "Type": "AWS::ApiGateway::Method",
+      "Properties": {
+        "HttpMethod": "POST",
+        "RequestParameters": {},
+        "ResourceId": {
+          "Ref": "ApiGatewayResourceRegister"
+        },
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "ApiKeyRequired": true,
+        "AuthorizationType": "NONE",
+        "Integration": {
+          "IntegrationHttpMethod": "POST",
+          "Type": "AWS_PROXY",
+          "Uri": {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":apigateway:",
+                {
+                  "Ref": "AWS::Region"
+                },
+                ":lambda:path/2015-03-31/functions/",
+                {
+                  "Fn::GetAtt": [
+                    "GenerateTokenLambdaFunction",
+                    "Arn"
+                  ]
+                },
+                "/invocations"
+              ]
+            ]
+          }
+        },
+        "MethodResponses": []
+      },
+      "DependsOn": [
+        "GenerateTokenLambdaPermissionApiGateway"
+      ]
+    },
+    "AuthorizeApiGatewayAuthorizer": {
+      "Type": "AWS::ApiGateway::Authorizer",
+      "Properties": {
+        "IdentitySource": "method.request.header.Authorization",
+        "Name": "authorize",
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "AuthorizerUri": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":apigateway:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":lambda:path/2015-03-31/functions/",
+              {
+                "Fn::GetAtt": [
+                  "AuthorizeLambdaFunction",
+                  "Arn"
+                ]
+              },
+              "/invocations"
+            ]
+          ]
+        },
+        "Type": "TOKEN"
+      }
+    },
+    "ApiGatewayDeployment1635678019600": {
+      "Type": "AWS::ApiGateway::Deployment",
+      "Properties": {
+        "RestApiId": {
+          "Ref": "ApiGatewayRestApi"
+        },
+        "StageName": "dev"
+      },
+      "DependsOn": [
+        "ApiGatewayMethodImageImageidVarGet",
+        "ApiGatewayMethodRegisterPost"
+      ]
+    },
+    "ApiGatewayApiKey1": {
+      "Type": "AWS::ApiGateway::ApiKey",
+      "Properties": {
+        "Enabled": true,
+        "Name": "learning-serverless-api-keys",
+        "StageKeys": [
+          {
+            "RestApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "StageName": "dev"
+          }
+        ]
+      },
+      "DependsOn": "ApiGatewayDeployment1635678019600"
+    },
+    "ApiGatewayUsagePlan": {
+      "Type": "AWS::ApiGateway::UsagePlan",
+      "DependsOn": "ApiGatewayDeployment1635678019600",
+      "Properties": {
+        "ApiStages": [
+          {
+            "ApiId": {
+              "Ref": "ApiGatewayRestApi"
+            },
+            "Stage": "dev"
+          }
+        ],
+        "Description": "Usage plan for serverless-service-new dev stage",
+        "UsagePlanName": "serverless-service-new-dev",
+        "Quota": {
+          "Limit": 10,
+          "Offset": 0,
+          "Period": "DAY"
+        },
+        "Throttle": {
+          "BurstLimit": 10,
+          "RateLimit": 10
+        }
+      }
+    },
+    "ApiGatewayUsagePlanKey1": {
+      "Type": "AWS::ApiGateway::UsagePlanKey",
+      "Properties": {
+        "KeyId": {
+          "Ref": "ApiGatewayApiKey1"
+        },
+        "KeyType": "API_KEY",
+        "UsagePlanId": {
+          "Ref": "ApiGatewayUsagePlan"
+        }
+      }
+    },
+    "GetImageMetaDataLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GetImageMetaDataLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "AuthorizeLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "AuthorizeLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "GenerateTokenLambdaPermissionApiGateway": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "GenerateTokenLambdaFunction",
+            "Arn"
+          ]
+        },
+        "Action": "lambda:InvokeFunction",
+        "Principal": "apigateway.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition"
+              },
+              ":execute-api:",
+              {
+                "Ref": "AWS::Region"
+              },
+              ":",
+              {
+                "Ref": "AWS::AccountId"
+              },
+              ":",
+              {
+                "Ref": "ApiGatewayRestApi"
+              },
+              "/*/*"
+            ]
+          ]
+        }
+      }
+    },
+    "ImageTable": {
+      "Type": "AWS::DynamoDB::Table",
+      "Properties": {
+        "AttributeDefinitions": [
+          {
+            "AttributeName": "ImageId",
+            "AttributeType": "S"
+          }
+        ],
+        "KeySchema": [
+          {
+            "AttributeName": "ImageId",
+            "KeyType": "HASH"
+          }
+        ],
+        "ProvisionedThroughput": {
+          "ReadCapacityUnits": 1,
+          "WriteCapacityUnits": 1
+        },
+        "TableName": "images-metadata"
+      }
     }
   },
   "Outputs": {
@@ -536,7 +1152,7 @@
     "ResizeImageLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ResizeImageLambdaVersioneZgw74VaQgpPeLLt9I8Pt5mkhpUZU3uERfgQ85KfIR0"
+        "Ref": "ResizeImageLambdaVersion205O4UUCnxBU4F37QknlcOtmIWVSADNagpilTSAk"
       },
       "Export": {
         "Name": "sls-serverless-service-new-dev-ResizeImageLambdaFunctionQualifiedArn"
@@ -545,7 +1161,7 @@
     "ExecuteStepFunctionLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ExecuteStepFunctionLambdaVersionHMWr4lqu9SCw5cS4I477wxKyvXI7J6oseYdj0WnN0"
+        "Ref": "ExecuteStepFunctionLambdaVersionjOvTKjhziSaqmKptqaHZ8RWcBcY3HDdVhqDHvozQeHI"
       },
       "Export": {
         "Name": "sls-serverless-service-new-dev-ExecuteStepFunctionLambdaFunctionQualifiedArn"
@@ -554,7 +1170,7 @@
     "ThumbnailsLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "ThumbnailsLambdaVersionthoMwBN5nwEoZArulFRXPCFVyUZ9YjlgFdV9ChMm4"
+        "Ref": "ThumbnailsLambdaVersionSb8zj7F5VE5O06sMajn1CULRyDsTvcTuRD26K7Ho6U"
       },
       "Export": {
         "Name": "sls-serverless-service-new-dev-ThumbnailsLambdaFunctionQualifiedArn"
@@ -563,10 +1179,46 @@
     "SaveImageMetaDataLambdaFunctionQualifiedArn": {
       "Description": "Current Lambda function version",
       "Value": {
-        "Ref": "SaveImageMetaDataLambdaVersionXfFDFvzXZm38n9WZpjAkslkTxQKxukG06iuB7i3ck8"
+        "Ref": "SaveImageMetaDataLambdaVersionZPfjafnIGlvhSQtPjc1oi4ifw1mFY0a8ky7czJV9s"
       },
       "Export": {
         "Name": "sls-serverless-service-new-dev-SaveImageMetaDataLambdaFunctionQualifiedArn"
+      }
+    },
+    "SquareImageLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "SquareImageLambdaVersionHjJLiJKqQyc14fd9Agza9ptRjyF6U8HOMk3BdqpRw"
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-SquareImageLambdaFunctionQualifiedArn"
+      }
+    },
+    "GetImageMetaDataLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "GetImageMetaDataLambdaVersionDZAE0cKxGy86Az8C9ZnwrNTZeSOa6UKLp1KRDH0qIY"
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-GetImageMetaDataLambdaFunctionQualifiedArn"
+      }
+    },
+    "GenerateTokenLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "GenerateTokenLambdaVersionpM6f3ml9YGN5zem3GLh1KByvWRG5BegAryUrowywU"
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-GenerateTokenLambdaFunctionQualifiedArn"
+      }
+    },
+    "AuthorizeLambdaFunctionQualifiedArn": {
+      "Description": "Current Lambda function version",
+      "Value": {
+        "Ref": "AuthorizeLambdaVersion63fuK7jDqidrT0VcjxatFRFYhygb4FKQo6jIXsGkc1c"
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-AuthorizeLambdaFunctionQualifiedArn"
       }
     },
     "ImageProcessingMachineStepFunctionsStateMachineArn": {
@@ -576,6 +1228,32 @@
       },
       "Export": {
         "Name": "sls-serverless-service-new-dev-ImageProcessingMachineStepFunctionsStateMachineArn"
+      }
+    },
+    "ServiceEndpoint": {
+      "Description": "URL of the service endpoint",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "ApiGatewayRestApi"
+            },
+            ".execute-api.",
+            {
+              "Ref": "AWS::Region"
+            },
+            ".",
+            {
+              "Ref": "AWS::URLSuffix"
+            },
+            "/dev"
+          ]
+        ]
+      },
+      "Export": {
+        "Name": "sls-serverless-service-new-dev-ServiceEndpoint"
       }
     }
   }

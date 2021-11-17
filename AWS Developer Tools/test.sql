@@ -154,3 +154,20 @@ module.exports.thumbnails = async (event, context, callback) => {
   })
 
 }
+
+USE [Bell_Auto_Patch]
+GO
+
+
+
+UPDATE [dbo].[auto_patch_schedule]
+SET workflow_status = 'WS_SC'
+WHERE autopatch_group_id = [auto_patch_group_id]
+GO
+
+
+
+UPDATE [dbo].[auto_patch_schedule]
+SET cancel = 1
+WHERE autopatch_group_id =  [auto_patch_group_id]
+GO

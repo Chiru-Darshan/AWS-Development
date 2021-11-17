@@ -6,6 +6,8 @@ const stepFunctions = new AWS.StepFunctions({
   region: "us-east-1"
 });
 
+const saveMetaDataManager = require("./imageMetataManager.js")
+
 
 module.exports.executeStepFunction = async (event, context, callback) => {
   console.log(`The Execution Started.....`)
@@ -49,6 +51,69 @@ module.exports.executeStepFunction = async (event, context, callback) => {
 
 
 }
+
+
+
+module.exports.squareImage = async (event, context, callback) => {
+  console.log(`Execution Started..... ${JSON.stringify(event)}`)
+
+  const srcBucket = event.bucketName
+  const srcKey = event.objectKey
+
+  console.log(`Event data : ${srcBucket} and ${srcKey}`)
+  let orgImage = ''
+
+  try {
+    const params = {
+      Bucket: srcBucket,
+      Key: srcKey
+    };
+    orgImage = await s3.getObject(params).promise()
+
+    console.log(`Recieved Object : ${JSON.stringify(orgImage)}`)
+
+  } catch (err) {
+    console.log(`Error Occurred while fetching Object : ${srcBucket} with Error : ${err}`)
+    return
+  }
+  let buffer = ''
+  try {
+    const jimpImage = await jimp.read(orgImage.Body);
+    const mime = jimpImage.getMIME();
+
+    buffer = await jimpImage.scaleToFit(200, 200).getBufferAsync(mime);
+    console.log(`Jimp got buffer ${buffer}`)
+  } catch (err) {
+    console.log(`Error Occurred while scaling image : ${srcBucket} with Error : ${err}`)
+    return
+  }
+
+
+  try {
+    console.log(`Adding image to thumbails folder`)
+    // let dstKey = `crop-${srcKey}`.replace('uploads', 'thumbnails')
+    const put = await s3.putObject({
+      Bucket: srcBucket,
+      Key: `crop-${srcKey}`.replace('uploads', 'thumbnails'),
+      Body: buffer,
+      ContentType: "image"
+    }).promise()
+
+  } catch (err) {
+    console.log(`Error Occurred adding image to thumbails folder with Error : ${err}`)
+    return
+  }
+
+  console.log('Successfully cropped ' + srcBucket + '/' + srcKey +
+    ' and uploaded to ' + '/');
+
+
+  return {
+    message: "successfully Scaled Image",
+  }
+
+}
+
 
 
 module.exports.resizeImage = async (event, context, callback) => {
@@ -137,10 +202,17 @@ module.exports.resizeImage = async (event, context, callback) => {
 };
 
 module.exports.saveImageMetaData = async (event, context, callback) => {
+
+  const bucket = event.bucketName
+  const key = event.objectKey
   console.log(`SaveImageMetaData was Called....`)
-  callback(null, {
-    message: "thumbnail got invoked....."
-  })
+  await saveMetaDataManager.main(bucket, key, false);
+  console.log(`Successfully created thumbnail in dynamodb`)
+
+
+  return {
+    message: "thumbnail got converted...."
+  }
 }
 
 module.exports.thumbnails = async (event, context, callback) => {
@@ -151,4 +223,20 @@ module.exports.thumbnails = async (event, context, callback) => {
     message: "thumbnail got invoked....."
   })
 
+}
+
+module.exports.getImageMetaData = async (event, context) => {
+  console.log(`Get Image Meta Data..... ${JSON.stringify(event)}`)
+
+  //saveMetaDataManager.getImage(`test : ${JSON.stringify(event)}`)
+
+  const data = await saveMetaDataManager.getImage(event.pathParameters.imageId);
+  const response = {
+    statusCode: 200,
+    body: JSON.stringify({
+      message: 'API got called....',
+      data: JSON.stringify(data)
+    })
+  }
+  return response;
 }
